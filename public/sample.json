@@ -1,0 +1,132 @@
+{
+  "papers": [
+    {
+      "id": "lit_1",
+      "title": "Deep Learning for NLP",
+      "author": "Alice Kim",
+      "year": 2019,
+      "groupIds": ["sec_1"],
+      "citatingPaperIds": ["lit_2", "lit_3"],
+      "note": "Key paper for introduction section"
+    },
+    {
+      "id": "lit_2",
+      "title": "Graph Neural Networks",
+      "author": "Bob Lee",
+      "year": 2021,
+      "groupIds": ["sec_2"],
+      "citatingPaperIds": [],
+      "note": "Discusses recent advances"
+    },
+    {
+      "id": "lit_3",
+      "title": "Survey on Transformers",
+      "author": "Carol Park",
+      "year": 2020,
+      "groupIds": ["sec_2"],
+      "citatingPaperIds": []
+    },
+    {
+      "id": "lit_4",
+      "title": "Explainable AI Methods",
+      "author": "David Choi",
+      "year": 2022,
+      "groupIds": ["sec_3"],
+      "citatingPaperIds": [],
+      "note": "Important for methodology"
+    },
+    {
+      "id": "lit_5",
+      "title": "Reinforcement Learning Basics",
+      "author": "Eunji Han",
+      "year": 2018,
+      "groupIds": ["sec_3"],
+      "citatingPaperIds": []
+    },
+    {
+      "id": "lit_6",
+      "title": "Applications of GANs",
+      "author": "Frank Jung",
+      "year": 2021,
+      "groupIds": ["sec_4"],
+      "citatingPaperIds": [],
+      "note": "Referenced in results"
+    },
+    {
+      "id": "lit_7",
+      "title": "Optimization in ML",
+      "author": "Grace Lim",
+      "year": 2017,
+      "groupIds": ["sec_4"],
+      "citatingPaperIds": []
+    },
+    {
+      "id": "lit_8",
+      "title": "Transfer Learning Overview",
+      "author": "Hana Seo",
+      "year": 2020,
+      "groupIds": ["sec_5"],
+      "citatingPaperIds": [],
+      "note": "Useful for conclusion"
+    },
+    {
+      "id": "lit_9",
+      "title": "Data Augmentation Techniques",
+      "author": "Ian Park",
+      "year": 2019,
+      "groupIds": [],
+      "citatingPaperIds": []
+    },
+    {
+      "id": "lit_10",
+      "title": "Self-supervised Learning",
+      "author": "Jisoo Kim",
+      "year": 2022,
+      "groupIds": [],
+      "citatingPaperIds": [],
+      "note": "Latest research"
+    }
+  ],
+  "groups": [
+    {
+      "id": "sec_1",
+      "title": "Introduction",
+      "color": "#FFB300",
+      "parentGroupId": "root",
+      "subGroupIds": ["sec_2"],
+      "paperIds": ["lit_1"]
+    },
+    {
+      "id": "sec_2",
+      "title": "Background",
+      "color": "#1E88E5",
+      "parentGroupId": "sec_1",
+      "subGroupIds": ["sec_3"],
+      "paperIds": ["lit_2", "lit_3"]
+    },
+    {
+      "id": "sec_3",
+      "title": "Methodology",
+      "color": "#43A047",
+      "parentGroupId": "sec_2",
+      "subGroupIds": ["sec_4", "sec_5"],
+      "paperIds": ["lit_4", "lit_5"]
+    },
+    {
+      "id": "sec_4",
+      "title": "Results",
+      "color": "#E53935",
+      "parentGroupId": "sec_3",
+      "subGroupIds": [],
+      "paperIds": ["lit_6", "lit_7"]
+    },
+    {
+      "id": "sec_5",
+      "title": "Conclusion",
+      "color": "#8E24AA",
+      "parentGroupId": "sec_3",
+      "subGroupIds": [],
+      "paperIds": ["lit_8"]
+    }
+  ]
+}
