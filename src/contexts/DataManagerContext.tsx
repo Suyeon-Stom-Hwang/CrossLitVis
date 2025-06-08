@@ -3,15 +3,22 @@ import { useGroupContext } from "./GroupContext";
 import { usePaperContext } from "./PaperContext";
 import type { Group } from "../types/Group";
 
-type DataManagerContextType = {
-  deletePaper(paperId: string): void;
-  mergeGroups(sourceGroupId: string, targetGroupId: string): void;
+export type DataManagerContextType = {
+  deletePaper: (paperId: string) => void;
+  mergeGroups: (sourceGroupId: string, targetGroupId: string) => void;
   deleteGroup: (groupId: string) => void;
-  newGroupWithPapers: (groupTitle?: string, paperIds?: string[]) => void;
+  movePapersIntoGroup: (paperIds: string[], groupId: string) => void;
+  removePapersFromGroup: (paperIds: string[], groupId: string) => void;
+  newGroupWithPapers: (
+    groupId?: string,
+    groupTitle?: string,
+    parentGroupId?: string,
+    paperIds?: string[]
+  ) => void;
   updatePaperTitle?: (paperId: string, title: string) => void;
   updateGroupTitle?: (groupId: string, title: string) => void;
-  updatePaperNote?: (paperId: string, text: string) => void;
-  updateGroupNote?: (groupId: string, text: string) => void;
+  updatePaperNote: (paperId: string, note: string) => void;
+  updateGroupNote?: (groupId: string, note: string) => void;
 };
 
 const DataManagerContext = createContext<DataManagerContextType | undefined>(
@@ -126,7 +133,12 @@ export const DataManagerProvider = ({ children }: { children: ReactNode }) => {
   );
 
   const newGroupWithPapers = useCallback(
-    (groupTitle?: string, paperIds?: string[]) => {
+    (
+      groupId?: string,
+      groupTitle?: string,
+      parentGroupId?: string,
+      paperIds?: string[]
+    ) => {
       // Generate a random hex color
       const randomColor =
         "#" +
@@ -134,30 +146,116 @@ export const DataManagerProvider = ({ children }: { children: ReactNode }) => {
           .toString(16)
           .padStart(6, "0");
 
+      const newId =
+        groupId && groupId !== "" && !groupCtx.getGroupById(groupId)
+          ? groupId
+          : `group-${Date.now()}`;
+
+      const parentId =
+        parentGroupId && groupCtx.getGroupById(parentGroupId)
+          ? parentGroupId
+          : "root";
+
       const newGroup: Group = {
-        id: `group-${Date.now()}`,
+        id: newId,
         title: groupTitle || "New Group",
         note: undefined,
         color: randomColor,
-        parentGroupId: "root",
+        parentGroupId: parentId,
         subGroupIds: [],
         paperIds: [],
       };
 
-      paperIds &&
-        paperIds.forEach((paperId) => {
-          const paper = paperCtx.getPaperById(paperId);
-          if (paper) {
-            newGroup.paperIds.push(paperId);
-            paper.groupIds.push(newGroup.id);
-            paperCtx.updatePaper(paper);
-          } else {
-            console.error(`Paper with ID ${paperId} not found.`);
-          }
-        });
+      paperIds?.forEach((paperId) => {
+        const paper = paperCtx.getPaperById(paperId);
+        if (paper) {
+          newGroup.paperIds.push(paperId);
+          paper.groupIds.push(newId);
+          paperCtx.updatePaper(paper);
+        }
+      });
       groupCtx.addGroup(newGroup);
     },
-    [groupCtx, paperCtx]
+    [
+      paperCtx.getPaperById,
+      paperCtx.updatePaper,
+      groupCtx.addGroup,
+      groupCtx.getGroupById,
+    ]
+  );
+
+  const updatePaperNote = useCallback(
+    (paperId: string, note: string) => {
+      const paper = paperCtx.getPaperById(paperId);
+      if (!paper) {
+        console.error(`Paper with ID ${paperId} not found.`);
+        return;
+      }
+      paper.note = note;
+      paperCtx.updatePaper(paper);
+    },
+    [paperCtx.getPaperById, paperCtx.updatePaper]
+  );
+
+  const movePapersIntoGroup = useCallback(
+    (paperIds: string[], groupId: string) => {
+      const group = groupCtx.getGroupById(groupId);
+      if (!group) {
+        console.error(`Invalid group ID (${groupId}) provided.`);
+        return;
+      }
+
+      paperIds.forEach((paperId) => {
+        const paper = paperCtx.getPaperById(paperId);
+        if (!paper) {
+          return;
+        }
+
+        // Add paper to the new group
+        !group.paperIds.includes(paperId) && group.paperIds.push(paperId);
+        !paper.groupIds.includes(groupId) && paper.groupIds.push(groupId);
+        paperCtx.updatePaper(paper);
+      });
+
+      groupCtx.updateGroup(group);
+    },
+    [
+      paperCtx.getPaperById,
+      paperCtx.updatePaper,
+      groupCtx.getGroupById,
+      groupCtx.updateGroup,
+    ]
+  );
+
+  const removePapersFromGroup = useCallback(
+    (paperIds: string[], groupId: string) => {
+      const group = groupCtx.getGroupById(groupId);
+      if (!group) {
+        console.error(`Invalid group ID (${groupId}) provided.`);
+        return;
+      }
+
+      paperIds.forEach((paperId) => {
+        const paper = paperCtx.getPaperById(paperId);
+        if (!paper) {
+          console.error(`Paper with ID ${paperId} not found.`);
+          return;
+        }
+
+        // Remove paper from the group
+        group.paperIds = group.paperIds.filter((id) => id !== paperId);
+        paper.groupIds = paper.groupIds.filter((id) => id !== groupId);
+        paperCtx.updatePaper(paper);
+      });
+
+      groupCtx.updateGroup(group);
+    },
+    [
+      paperCtx.getPaperById,
+      paperCtx.updatePaper,
+      groupCtx.getGroupById,
+      groupCtx.updateGroup,
+    ]
   );
 
   return (
@@ -166,7 +264,10 @@ export const DataManagerProvider = ({ children }: { children: ReactNode }) => {
         deletePaper,
         mergeGroups,
         deleteGroup,
+        movePapersIntoGroup,
+        removePapersFromGroup,
         newGroupWithPapers,
+        updatePaperNote,
       }}
     >
       {children}

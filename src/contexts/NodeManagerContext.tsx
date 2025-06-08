@@ -42,7 +42,7 @@ function getBubblePathCenter(path: BubbleSets.PointPath): [number, number] {
     x += point.x;
     y += point.y;
   }
-  
+
   return [x / path.length, y / path.length];
 }
 
@@ -112,15 +112,12 @@ export const VisNodeProvider = ({ children }: { children: ReactNode }) => {
         const paper = paperCtx.getPaperById(paperId);
         const paperNode = paperNodes.find((node) => node.refId === paperId);
         if (!paperNode || !paper) {
-          console.error(
-            `Paper node or paper not found for paper with ID: ${paperId}`
-          );
           return;
         }
 
         const width = calcNoteWidth(paper.title, 12);
         const height = 60;
-        const margin = 30 + 50 * depth;
+        const margin = 40 + 60 * depth;
 
         bubbleSets.pushMember(
           BubbleSets.rect(
@@ -157,7 +154,6 @@ export const VisNodeProvider = ({ children }: { children: ReactNode }) => {
     [
       paperNodes,
       paperCtx.getPaperById,
-      groupCtx.rootGroup,
       groupCtx.getGroupById,
       getDepth,
     ]

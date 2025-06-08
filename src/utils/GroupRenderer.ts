@@ -9,7 +9,9 @@ import { calcNoteWidth, getGroupColor } from "./StyleManager";
 export function renderGroupBubblePath(
   svg: d3.Selection<SVGSVGElement | null, unknown, null, undefined>,
   groupBubbleNodes: GroupBubbleNode[],
-  onClick: (event: MouseEvent, d: GroupBubbleNode) => void
+  onClick: (event: MouseEvent, d: GroupBubbleNode) => void,
+  onMouseEnter: (event: MouseEvent, d: GroupBubbleNode) => void,
+  onMouseLeave: (event: MouseEvent, d: GroupBubbleNode) => void
 ) {
   /** g.node 그룹 */
   svg
@@ -17,46 +19,26 @@ export function renderGroupBubblePath(
     .data(groupBubbleNodes, (d) => d.id)
     .join(
       (enter) => {
+        const className = "bubble cursor-pointer stroke-gray-800";
         const path = enter
           .append("path")
-          .attr("class", "bubble cursor-pointer")
+          .attr("class", className)
           .attr("d", (d) => d.path.toString())
           .attr("fill", (d) => getGroupColor(d.depth))
           .attr("opacity", 0.5)
-          .attr("stroke", "#000")
           .attr("filter", (d) => {
-            return `drop-shadow(0 0 4px ${d3
+            return `drop-shadow(0 0 8px ${d3
               .color(getGroupColor(d.depth))
               ?.formatRgb()}`;
           })
           .on("click", function (event, d) {
             onClick(event, d);
           })
-          .on("mouseenter", function () {
-            d3.selectAll<SVGPathElement, GroupBubbleNode>("path.bubble")
-              .transition()
-              .duration(200)
-              .attr("opacity", 0.2)
-              .attr("stroke-width", 1);
-
-            d3.select(this)
-              .transition()
-              .duration(200)
-              .attr("stroke-width", 6)
-              .attr("opacity", 0.7);
+          .on("mouseenter", function (event, d) {
+            onMouseEnter(event, d);
           })
-          .on("mouseleave", function () {
-            d3.selectAll<SVGPathElement, GroupBubbleNode>("path.bubble")
-              .transition()
-              .duration(200)
-              .attr("opacity", 0.5)
-              .attr("stroke-width", 1);
-
-            d3.select(this)
-              .transition()
-              .duration(200)
-              .attr("stroke-width", 1)
-              .attr("opacity", 0.5);
+          .on("mouseleave", function (event, d) {
+            onMouseLeave(event, d);
           });
         return path;
       },
@@ -109,9 +91,11 @@ export function renderGroupTitles(
       },
       (update) => {
         update
-          .attr("transform", (d) => `translate(${d.x}, ${d.y})`)
-          .select("text")
-          .text((d) => d.title);
+          .transition()
+          .duration(200)
+          .attr("transform", (d) => `translate(${d.x}, ${d.y})`);
+
+        update.select("text").text((d) => d.title);
 
         update
           .select("rect")

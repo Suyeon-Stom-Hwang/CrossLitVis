@@ -1,10 +1,6 @@
 import * as d3 from "d3";
 import type { PaperNode, PaperNoteNode } from "../types/VisNode";
-import {
-  calcNoteWidth,
-  getPaperColor,
-  getPaperTitleColor,
-} from "./StyleManager";
+import { calcNoteWidth } from "./StyleManager";
 
 export function renderPapers(
   svg: d3.Selection<SVGSVGElement | null, unknown, null, undefined>,
@@ -26,37 +22,34 @@ export function renderPapers(
           .attr("transform", (d) => `translate(${d.x},${d.y})`)
           .call(paperDrag);
 
+        const className = {
+          rect: "stroke-slate-300 fill-slate-50 hover:stroke-3 hover:stroke-black transition-stroke duration-200 cursor-pointer",
+          text: "text-xs fill-gray-900",
+        };
         gEnter
           .append("rect")
           .attr("width", (d) => calcNoteWidth(d.title, 12))
           .attr("height", 60)
-          .attr("rx", 10)
-          .attr("ry", 10)
+          .attr("stroke-width", 1.5)
+          .attr("rx", 6)
+          .attr("ry", 6)
           .attr("x", (d) => -calcNoteWidth(d.title, 12) / 2)
           .attr("y", -30)
-          .attr("fill", getPaperColor())
-          .attr(
-            "class",
-            "drop-shadow-xl hover:stroke-3 hover:stroke-black transition-stroke duration-200 cursor-pointer"
-          );
+          .attr("class", className.rect);
 
         gEnter
           .append("text")
-          .attr("class", "drop-shadow-xl")
           .attr("y", 5)
           .attr("text-anchor", "middle")
-          .attr("font-size", 12)
-          .attr("fill", getPaperTitleColor())
+          .attr("class", className.text)
           .style("pointer-events", "none")
           .text((d) => d.title);
 
         return gEnter;
       },
       (update) => {
-        update
-          .attr("transform", (d) => `translate(${d.x},${d.y})`)
-          .select("circle")
-          .attr("fill", getPaperColor());
+        update.attr("transform", (d) => `translate(${d.x},${d.y})`);
+
         return update;
       },
       (exit) => exit.remove()
@@ -81,24 +74,27 @@ export function renderPaperNotes(
           .attr("transform", (d) => `translate(${d.x}, ${d.y})`)
           .on("dblclick", onDoubleClick);
 
+        const className = {
+          rect: "opacity-80 drop-shadow-2xl fill-amber-100 ",
+          text: "text-xs fill-gray-900",
+        };
+
         gEnter
           .append("rect")
-          .attr("class", "opacity-80 stroke-2 stroke-gray-300")
-          .attr("width", (d) => calcNoteWidth(d.note, 16))
+          .attr("class", className.rect)
+          .attr("width", (d) => calcNoteWidth(d.note, 12))
           .attr("height", 25)
           .attr("rx", 5)
           .attr("ry", 5)
-          .attr("x", (d) => -calcNoteWidth(d.note, 16) / 2)
-          .attr("y", 30)
-          .attr("fill", (d) => d.color);
+          .attr("x", (d) => -calcNoteWidth(d.note, 12) / 2)
+          .attr("y", 35);
 
         gEnter
           .append("text")
-          .attr("y", 46)
+          .attr("y", 51)
           .attr("text-anchor", "middle")
-          .attr("font-size", 12)
+          .attr("class", className.text)
           .style("pointer-events", "none")
-          .attr("fill", "#fff")
           .text((d) => d.note);
 
         return gEnter;
@@ -111,8 +107,8 @@ export function renderPaperNotes(
 
         update
           .select("rect")
-          .attr("width", (d) => calcNoteWidth(d.note, 16))
-          .attr("x", (d) => -calcNoteWidth(d.note, 16) / 2);
+          .attr("width", (d) => calcNoteWidth(d.note, 12))
+          .attr("x", (d) => -calcNoteWidth(d.note, 12) / 2);
 
         return update;
       },

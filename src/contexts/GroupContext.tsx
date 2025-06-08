@@ -67,12 +67,28 @@ export const GroupProvider = ({
 
   // Group 관련
   const addGroup = (group: Group) => {
-    group.parentGroupId = "root";
-    setGroups((prev) => [...prev, group]);
-    setRootGroup((prevRootGroup) => ({
-      ...prevRootGroup,
-      subGroupIds: [...prevRootGroup.subGroupIds, group.id],
-    }));
+    setGroups((prev) =>
+      prev
+        .map((g) => {
+          if (g.id === group.parentGroupId) {
+            return {
+              ...g,
+              subGroupIds: [...g.subGroupIds, group.id],
+            };
+          } else {
+            return g;
+          }
+        })
+        .concat([group])
+    );
+
+    if (group.parentGroupId === "root") {
+      // If the group is a root group, add it to the rootGroup's subGroupIds
+      setRootGroup((prevRootGroup) => ({
+        ...prevRootGroup,
+        subGroupIds: [...prevRootGroup.subGroupIds, group.id],
+      }));
+    }
   };
 
   const removeGroup = useCallback(
@@ -97,16 +113,22 @@ export const GroupProvider = ({
   );
 
   const updateGroup = (group: Group) => {
-    setGroups((prev) =>
-      prev.map((g) => (g.id === group.id ? { ...g, ...group } : g))
-    );
+    if (group.id === "root") {
+      setRootGroup({ ...group });
+    } else {
+      setGroups((prev) =>
+        prev.map((g) => (g.id === group.id ? { ...g, ...group } : g))
+      );
+    }
   };
 
   const getGroupById = useCallback(
     (id: string): Group | undefined => {
-      return groups.find((group) => group.id === id);
+      return id === "root"
+        ? rootGroup
+        : groups.find((group) => group.id === id);
     },
-    [groups]
+    [groups, rootGroup]
   );
 
   const getGroupByPaperId = useCallback(

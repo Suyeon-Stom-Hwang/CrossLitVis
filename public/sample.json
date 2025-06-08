@@ -6,7 +6,7 @@
       "author": "Alice Kim",
       "year": 2019,
       "groupIds": ["sec_1"],
-      "citatingPaperIds": ["lit_2", "lit_3"],
+      "citationIds": ["lit_2", "lit_3"],
       "note": "Key paper for introduction section"
     },
     {
@@ -15,7 +15,7 @@
       "author": "Bob Lee",
       "year": 2021,
       "groupIds": ["sec_2"],
-      "citatingPaperIds": [],
+      "citationIds": [],
       "note": "Discusses recent advances"
     },
     {
@@ -24,7 +24,7 @@
       "author": "Carol Park",
       "year": 2020,
       "groupIds": ["sec_2"],
-      "citatingPaperIds": []
+      "citationIds": []
     },
     {
       "id": "lit_4",
@@ -32,7 +32,7 @@
       "author": "David Choi",
       "year": 2022,
       "groupIds": ["sec_3"],
-      "citatingPaperIds": [],
+      "citationIds": [],
       "note": "Important for methodology"
     },
     {
@@ -41,7 +41,7 @@
       "author": "Eunji Han",
       "year": 2018,
       "groupIds": ["sec_3"],
-      "citatingPaperIds": []
+      "citationIds": []
     },
     {
       "id": "lit_6",
@@ -49,7 +49,7 @@
       "author": "Frank Jung",
       "year": 2021,
       "groupIds": ["sec_4"],
-      "citatingPaperIds": [],
+      "citationIds": [],
       "note": "Referenced in results"
     },
     {
@@ -58,7 +58,7 @@
       "author": "Grace Lim",
       "year": 2017,
       "groupIds": ["sec_4"],
-      "citatingPaperIds": []
+      "citationIds": []
     },
     {
       "id": "lit_8",
@@ -66,7 +66,7 @@
       "author": "Hana Seo",
       "year": 2020,
       "groupIds": ["sec_5"],
-      "citatingPaperIds": [],
+      "citationIds": [],
       "note": "Useful for conclusion"
     },
     {
@@ -75,7 +75,7 @@
       "author": "Ian Park",
       "year": 2019,
       "groupIds": [],
-      "citatingPaperIds": []
+      "citationIds": []
     },
     {
       "id": "lit_10",
@@ -83,7 +83,7 @@
       "author": "Jisoo Kim",
       "year": 2022,
       "groupIds": [],
-      "citatingPaperIds": [],
+      "citationIds": [],
       "note": "Latest research"
     }
   ],

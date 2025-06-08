@@ -1,35 +1,38 @@
-import { useRef, useEffect, useState, Fragment } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { Popover, PopoverPanel, Transition } from "@headlessui/react";
 
 import { useGroupContext } from "../contexts/GroupContext";
+import { useNodeManager } from "../contexts/NodeManagerContext";
 import PaperPopup from "./PaperPopup";
 import GroupPopup from "./GroupPopup";
 import NoteEditingPopup from "./NoteEditingPopup";
-import { highlightGroup } from "../utils/StyleManager";
+import {
+  calcNoteWidth,
+  highlightGroup,
+  resetHighlight,
+} from "../utils/StyleManager";
 import * as PaperRenderer from "../utils/PaperRenderer";
 import * as GroupRenderer from "../utils/GroupRenderer";
+import { handleAction, type Action } from "../utils/ActionHandler";
 
 import type { PopupType } from "../types/Popup";
-import type {
-  VisNodeBase,
-  PaperNode,
-  PaperNoteNode,
-  GroupNoteNode,
-  GroupBubbleNode,
-} from "../types/VisNode";
-import { useNodeManager } from "../contexts/NodeManagerContext";
+import type { GroupNoteNode, PaperNode, PaperNoteNode } from "../types/VisNode";
+import { useDataManager } from "../contexts/DataManagerContext";
 
-function calcNoteWidth(text: string, fontSize: number = 8): number {
-  return (text.length * fontSize) / 2 + 20;
+interface GraphProps {
+  action?: Action;
+  onAction?: (action: any) => void;
 }
 
 /* ── 컴포넌트 ── */
-export default function Graph() {
+export default function Graph({ action }: GraphProps) {
   const groupCtx = useGroupContext();
-  const visNodesCtx = useNodeManager();
+  const nodeManager = useNodeManager();
+  const dataManager = useDataManager();
 
   const [highlihtedGroup, setHighlightedGroup] = useState<string | null>(null);
+  const [requestedAction, setRequestedAction] = useState<Action | null>(null);
 
   const W = 1000,
     H = 1000;
@@ -57,7 +60,7 @@ export default function Graph() {
       .on("start", function (event) {
         closePopups();
         (this as any)._start = d3.pointer(event, svg.node());
-        d3.select(this).raise().select("circle").attr("stroke", "black");
+        d3.select(this).raise().select("rect").attr("stroke", "black");
       })
       .on("drag", function (event, d) {
         // Clamp x and y to stay within SVG bounds
@@ -70,14 +73,14 @@ export default function Graph() {
         d.x = Math.max(minX, Math.min(event.x, maxX));
         d.y = Math.max(minY, Math.min(event.y, maxY));
         d3.select(this).attr("transform", `translate(${d.x},${d.y})`);
-        visNodesCtx.updateNodePosition(d.id, d.x, d.y);
+        nodeManager.updateNodePosition(d.id, d.x, d.y);
       })
       .on("end", function (event, d) {
-        d3.select(this).select("circle").attr("stroke", null);
+        d3.select(this).select("rect").attr("stroke", null);
 
         const [sx, sy] = (this as any)._start as [number, number];
         const [ex, ey] = d3.pointer(event, svg.node());
-        if (Math.hypot(ex - sx, ey - sy) < 6) {
+        if (Math.hypot(ex - sx, ey - sy) < 2) {
           openPopup(
             "paper",
             event.sourceEvent.clientX,
@@ -95,7 +98,7 @@ export default function Graph() {
       })
       .on("drag", function (event, d) {
         d3.select(this).attr("transform", `translate(${event.x},${event.y})`);
-        visNodesCtx.updateNodePosition(d.id, event.x, event.y);
+        nodeManager.updateNodePosition(d.id, event.x, event.y);
       })
       .on("end", function (event) {
         const [sx, sy] = (this as any)._start as [number, number];
@@ -107,7 +110,7 @@ export default function Graph() {
 
     GroupRenderer.renderGroupBubblePath(
       svg,
-      visNodesCtx.nodes.groupBubbleNodes,
+      nodeManager.nodes.groupBubbleNodes,
       (event, d) => {
         const group = groupCtx.getGroupById(d.refId);
         if (group) {
@@ -115,13 +118,19 @@ export default function Graph() {
           event.stopPropagation();
         }
         setHighlightedGroup(d.refId);
+      },
+      (_, d) => {
+        setHighlightedGroup(d.refId);
+      },
+      (_, d) => {
+        setHighlightedGroup(null);
       }
     );
 
-    PaperRenderer.renderPapers(svg, visNodesCtx.nodes.paperNodes, paperDrag);
+    PaperRenderer.renderPapers(svg, nodeManager.nodes.paperNodes, paperDrag);
 
     const handleDoubleClick = (event: MouseEvent, d: PaperNoteNode) => {
-      const paperNode = visNodesCtx.getNodeByRefId(
+      const paperNode = nodeManager.getNodeByRefId(
         d.refId,
         "paper"
       ) as PaperNode;
@@ -142,14 +151,14 @@ export default function Graph() {
 
     PaperRenderer.renderPaperNotes(
       svg,
-      visNodesCtx.nodes.paperNoteNodes,
+      nodeManager.nodes.paperNoteNodes,
       handleDoubleClick
     );
 
-    GroupRenderer.renderGroupTitles(svg, visNodesCtx.nodes.groupTitleNodes);
+    GroupRenderer.renderGroupTitles(svg, nodeManager.nodes.groupTitleNodes);
     GroupRenderer.renderGroupNotes(
       svg,
-      visNodesCtx.nodes.groupNoteNodes,
+      nodeManager.nodes.groupNoteNodes,
       groupNoteDrag
     );
 
@@ -160,25 +169,28 @@ export default function Graph() {
       }
       setHighlightedGroup(null);
     });
-  }, [groupCtx.getGroupById, visNodesCtx]);
+  }, [groupCtx.getGroupById, nodeManager]);
 
   useEffect(() => {
     if (!highlihtedGroup) {
-      d3.selectAll<SVGPathElement, GroupBubbleNode>("path.bubble")
-        .transition()
-        .duration(200)
-        .attr("opacity", 0.5)
-        .attr("stroke-width", 1);
-      d3.selectAll<SVGGElement, VisNodeBase>("g.node")
-        .transition()
-        .duration(200)
-        .attr("opacity", 1)
-        .select("circle")
-        .attr("stroke-width", 1);
+      resetHighlight();
     } else {
-      highlightGroup(highlihtedGroup);
+      highlightGroup(highlihtedGroup, groupCtx.getGroupById);
     }
-  }, [highlihtedGroup]);
+  }, [highlihtedGroup, groupCtx.getGroupById]);
+
+  useEffect(() => {
+    if (action) {
+      setRequestedAction(action);
+    }
+  }, [action]);
+
+  useEffect(() => {
+    if (requestedAction) {
+      handleAction(requestedAction, dataManager);
+      setRequestedAction(null);
+    }
+  }, [requestedAction, dataManager]);
 
   const openPopup = (type: PopupType, x: number, y: number, id: string) => {
     setPopup({

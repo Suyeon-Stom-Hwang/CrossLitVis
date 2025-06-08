@@ -76,7 +76,7 @@ export default function PaperPopup({
           Groups
         </span>
         <div className="flex flex-col">
-          {groupCtx.rootGroup.subGroupIds.map((groupId) => (
+          {groupCtx.getGroupById("root")?.subGroupIds.map((groupId) => (
             <GroupItem
               key={groupId}
               groupId={groupId} // If GroupItem expects sectionId, you may want to rename this prop to groupId in GroupItem as well
@@ -91,7 +91,12 @@ export default function PaperPopup({
               onChange={setNewGroupTitle}
               onConfirm={() => {
                 if (newGroupTitle.trim() !== "") {
-                  dataManager.newGroupWithPapers(newGroupTitle, [paperId]);
+                  dataManager.newGroupWithPapers(
+                    undefined,
+                    newGroupTitle,
+                    undefined,
+                    [paperId]
+                  );
                 }
                 setNewGroupTitle("");
                 setIsEditing(false);
